@@ -126,7 +126,7 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
                 <div className="font-medium">Symptoms:</div>
                 <ul className="list-disc pl-6 text-sm text-gray-800">
                   {ar.symptoms.map((s: string, idx: number) => (
-                    <li key={idx}>{s}</li>
+                    <li key={`sym-${idx}-${typeof s === 'string' ? s.slice(0,20) : 'item'}`}>{s}</li>
                   ))}
                 </ul>
               </div>
@@ -136,7 +136,7 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
                 <div className="font-medium">Treatments:</div>
                 <ul className="list-disc pl-6 text-sm text-gray-800">
                   {ar.treatments.map((t: string, idx: number) => (
-                    <li key={idx}>{t}</li>
+                    <li key={`trt-${idx}-${typeof t === 'string' ? t.slice(0,20) : 'item'}`}>{t}</li>
                   ))}
                 </ul>
               </div>
@@ -146,7 +146,7 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
                 <div className="font-medium">Recommendations:</div>
                 <ul className="list-disc pl-6 text-sm text-gray-800">
                   {ar.recommendations.map((r: string, idx: number) => (
-                    <li key={idx}>{r}</li>
+                    <li key={`rec-${idx}-${typeof r === 'string' ? r.slice(0,20) : 'item'}`}>{r}</li>
                   ))}
                 </ul>
               </div>

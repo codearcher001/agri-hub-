@@ -1554,8 +1554,8 @@ export default function AgriDashboard() {
                         </Button>
                       </div>
                       <div className="space-y-2">
-                        {selectedFiles.map((file, index) => (
-                          <div key={index} className="flex items-center gap-2 text-sm">
+                        {selectedFiles.map((file) => (
+                          <div key={`${file.name}-${file.size}-${file.lastModified}`} className="flex items-center gap-2 text-sm">
                             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                             <span className="dark:text-slate-300">{file.name}</span>
                             <span className="text-slate-500">({(file.size / 1024 / 1024).toFixed(1)}MB)</span>
@@ -1957,9 +1957,9 @@ export default function AgriDashboard() {
                           <div>
                             <h4 className="font-semibold mb-3">Drone Performance</h4>
                             <div className="space-y-2">
-                              {fleetAnalytics.dronePerformance.map((drone, index) => (
+                              {fleetAnalytics.dronePerformance.map((drone) => (
                                 <div
-                                  key={index}
+                                  key={drone.droneId}
                                   className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg"
                                 >
                                   <div className="flex items-center gap-3">
@@ -1982,7 +1982,7 @@ export default function AgriDashboard() {
                               <div className="space-y-2">
                                 {fleetAnalytics.alerts.slice(0, 5).map((alert, index) => (
                                   <div
-                                    key={index}
+                                    key={`${alert.droneId || index}-${alert.date}`}
                                     className="flex items-center gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"
                                   >
                                     <AlertTriangle className="w-4 h-4 text-yellow-600" />
