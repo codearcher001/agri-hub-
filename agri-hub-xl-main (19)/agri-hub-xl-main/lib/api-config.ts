@@ -9,7 +9,7 @@ export interface ApiConfig {
 // Demo API configuration with sample key
 export const defaultApiConfig: ApiConfig = {
   baseUrl: "https://api.agrisecure.com",
-  apiKey: "AIzaSyDPHkQqGg-SKXd0PitnSwD4qzWhGnLiWc",
+  apiKey: "",
   version: "v1",
   timeout: 30000, // 30 seconds
 }
@@ -135,20 +135,4 @@ export const demoApiResponses = {
   },
 }
 
-import { getGeminiConfig, type GeminiApiConfig } from "./gemini-api"
-
-// Enhanced API configuration with Gemini integration
-export interface EnhancedApiConfig extends ApiConfig {
-  gemini: GeminiApiConfig
-}
-
-// Get enhanced API configuration including Gemini
-export function getEnhancedApiConfig(): EnhancedApiConfig {
-  const baseConfig = getApiConfig()
-  const geminiConfig = getGeminiConfig()
-
-  return {
-    ...baseConfig,
-    gemini: geminiConfig,
-  }
-}
+// Gemini references removed; legacy helpers deleted

@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/database"
-import GeminiApi from "@/lib/gemini-api"
 
 export async function GET(request: NextRequest) {
   try {
@@ -124,28 +123,13 @@ export async function GET(request: NextRequest) {
 
       const { rows: alertRows } = await query(alertsQuery, queryParams.slice(0, fieldId ? 3 : 2))
 
-      let aiInsights = ""
-      try {
-        const droneAnalyticsData = {
-          flightPath: dailyRows.map((row, index) => ({
-            lat: 40.7128 + index * 0.001,
-            lng: -74.006 + index * 0.001,
-            altitude: 50 + index * 2,
-          })),
-          sensorReadings: {
-            batteryUsage: droneRows.map((row) => Number.parseFloat(row.avg_battery_usage) || 0),
-            flightDuration: droneRows.map((row) => Number.parseInt(row.total_flight_time) || 0),
-            areaCovered: droneRows.map((row) => Number.parseFloat(row.total_area_covered) || 0),
-          },
-          imageCount: Number.parseInt(stats.total_photos) || 0,
-          missionType: missionRows[0]?.mission_type || "crop_monitoring",
-        }
-
-        aiInsights = await GeminiApi.analyzeDroneData(droneAnalyticsData)
-      } catch (geminiError) {
-        console.error("[v0] Gemini drone analysis failed:", geminiError)
-        aiInsights = GeminiApi.getDemoGeminiResponse("drone")
-      }
+      // Simple rule-based insights (Gemini removed)
+      const avgBattery = Math.round(Number.parseFloat(stats.avg_battery_usage)) || 0
+      const topMission = missionRows[0]?.mission_type || "crop_monitoring"
+      const totalFlights = Number.parseInt(stats.total_flights) || 0
+      const totalArea = Number.parseFloat(stats.total_area_covered) || 0
+      const totalPhotos = Number.parseInt(stats.total_photos) || 0
+      const aiInsights = `Operational summary: ${totalFlights} flights, ${totalArea.toFixed(2)} ha covered, ${totalPhotos} images captured. Battery usage averages ${avgBattery}%. Dominant mission type: ${topMission}. Recommend scheduling preventative maintenance if avg battery usage exceeds 60% or flights per day exceed 10.`
 
       return NextResponse.json({
         success: true,
@@ -220,27 +204,7 @@ export async function GET(request: NextRequest) {
     } catch (dbError) {
       console.error("[v0] Database error, returning mock data:", dbError)
 
-      let mockAiInsights = ""
-      try {
-        const mockDroneData = {
-          flightPath: [
-            { lat: 40.7128, lng: -74.006, altitude: 50 },
-            { lat: 40.7138, lng: -74.005, altitude: 52 },
-            { lat: 40.7148, lng: -74.004, altitude: 54 },
-          ],
-          sensorReadings: {
-            batteryUsage: [62, 68, 65],
-            flightDuration: [504, 420, 326],
-            areaCovered: [45.0, 42.5, 38.0],
-          },
-          imageCount: 1850,
-          missionType: "crop_monitoring",
-        }
-
-        mockAiInsights = await GeminiApi.analyzeDroneData(mockDroneData)
-      } catch (geminiError) {
-        mockAiInsights = GeminiApi.getDemoGeminiResponse("drone")
-      }
+      const mockAiInsights = "Operational summary: 45 flights, 125.5 ha covered, 1850 images captured. Battery usage averages 65%. Dominant mission type: crop_monitoring. Recommend optimizing flight paths and scheduling maintenance for high-usage drones."
 
       return NextResponse.json({
         success: true,

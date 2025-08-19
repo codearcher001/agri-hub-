@@ -209,10 +209,10 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get("userId") || "1"
 
     // Get enhanced analysis history from database
-    const photos = await LocalDatabaseService.getUserPhotos(Number.parseInt(userId), 20)
+    const photos = await LocalDatabaseService.getRecentPhotos(Number.parseInt(userId), 20)
     
     const enhancedAnalysisHistory = photos
-      .filter(photo => photo.analysis_results && photo.analysis_results.analysisType === "enhanced_gemini_2_0_flash")
+      .filter(photo => photo.analysis_results && (photo.analysis_results.analysisType === "plant_id_v3" || photo.analysis_results.analysisType === "plant_id_fallback"))
       .map(photo => ({
         id: photo.id,
         filename: photo.filename,

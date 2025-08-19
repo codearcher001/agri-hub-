@@ -1,14 +1,14 @@
 # AgriSecure Hub - Crop Disease Analysis System
 
-*Advanced agricultural AI system powered by Gemini 2.0 Flash API*
+*Advanced agricultural image analysis powered by Plant.id API*
 
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/dasrajdeep2021-gmailcoms-projects/v0-agri-secure-hub-design)
 [![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/njsuvIjSU1N)
-[![Gemini 2.0 Flash](https://img.shields.io/badge/Gemini-2.0%20Flash-blue?style=for-the-badge)](https://ai.google.dev/gemini-api)
+[![Plant.id](https://img.shields.io/badge/Plant.id-API-green?style=for-the-badge)](https://web.plant.id)
 
 ## Overview
 
-AgriSecure Hub is a comprehensive crop disease analysis system that uses Google's Gemini 2.0 Flash API to provide detailed agricultural insights. The system can identify crops, detect diseases, provide treatment recommendations, and generate comprehensive reports.
+AgriSecure Hub is a comprehensive crop disease analysis system that uses the Plant.id API to provide detailed agricultural insights. The system can identify crops, detect diseases, provide treatment recommendations, and generate comprehensive reports.
 
 ## Deployment
 
@@ -32,7 +32,7 @@ Your project is live at:
 - **Professional Formatting**: Structured, easy-to-read reports
 
 ### 🔧 API Integration
-- **Gemini 2.0 Flash API**: Powered by Google's latest AI model
+- **Plant.id API**: Production-grade plant and disease identification
 - **RESTful Endpoints**: Complete API for upload, analysis, and reporting
 - **Batch Processing**: Analyze multiple images simultaneously
 - **Fallback System**: Basic analysis if AI API fails
@@ -55,8 +55,8 @@ cp .env.example .env.local
 
 The API key is already configured in the example file:
 ```env
-NEXT_PUBLIC_GEMINI_API_KEY=AIzaSyDPHkQqGg-SKXd0PitnSwD4qzWhGnLiWc
-GEMINI_API_KEY=AIzaSyDPHkQqGg-SKXd0PitnSwD4qzWhGnLiWc
+NEXT_PUBLIC_PLANT_ID_API_KEY=your_plant_id_key_here
+PLANT_ID_API_KEY=your_plant_id_key_here
 ```
 
 ### 2. Install Dependencies
@@ -79,7 +79,7 @@ pnpm dev
 
 Visit the test pages to verify functionality:
 - `/test-upload` - Basic file upload testing
-- `/test-gemini` - Comprehensive Gemini 2.0 Flash API testing
+  
 
 ## API Endpoints
 
@@ -101,7 +101,7 @@ Continue building your app on:
 ## How It Works
 
 1. Upload crop images through the web interface or API
-2. Gemini 2.0 Flash AI analyzes the image for diseases and health issues
+2. Plant.id analyzes the image for diseases and health issues
 3. System generates comprehensive reports with treatment recommendations
 4. Download detailed reports in multiple formats
 5. Track analysis history and monitor crop health over time

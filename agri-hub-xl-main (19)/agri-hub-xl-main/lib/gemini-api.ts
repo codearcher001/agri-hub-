@@ -1,5 +1,7 @@
-// Gemini 2.0 Flash API Service for Crop Disease Analysis
-// Based on the official Gemini 2.0 Flash API documentation
+// Deprecated: Gemini API removed. This file is intentionally left minimal to avoid imports.
+export type GeminiApiConfig = never
+export function getGeminiConfig(): never { throw new Error("Gemini API removed") }
+export default {} as any
 
 export interface CropDiseaseAnalysis {
   cropName: string

@@ -7,7 +7,7 @@ echo "=================================================="
 if [ -f ".env.local" ]; then
     echo "✅ .env.local already exists"
     echo "📝 Current API key configuration:"
-    grep "GEMINI_API_KEY" .env.local
+    grep "PLANT_ID_API_KEY" .env.local
 else
     echo "📝 Creating .env.local file..."
     cp .env.example .env.local
@@ -16,8 +16,8 @@ fi
 
 echo ""
 echo "🔑 API Key Configuration:"
-echo "   NEXT_PUBLIC_GEMINI_API_KEY=AIzaSyDPHkQqGg-SKXd0PitnSwD4qzWhGnLiWc"
-echo "   GEMINI_API_KEY=AIzaSyDPHkQqGg-SKXd0PitnSwD4qzWhGnLiWc"
+echo "   NEXT_PUBLIC_PLANT_ID_API_KEY=your_plant_id_key_here"
+echo "   PLANT_ID_API_KEY=your_plant_id_key_here"
 echo ""
 echo "✅ Environment setup complete!"
 echo ""
