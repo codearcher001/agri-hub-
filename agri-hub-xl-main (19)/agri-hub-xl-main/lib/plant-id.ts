@@ -1,7 +1,44 @@
 import sharp from "sharp"
 
-// Reuse shared types from the existing analysis report to minimize churn
-import type { AnalysisReport, CropDiseaseAnalysis } from "@/lib/gemini-api"
+// Local analysis types (removes dependency on Gemini)
+export interface CropDiseaseAnalysis {
+  cropName: string
+  diseaseName: string
+  confidence: number
+  severity: "low" | "medium" | "high" | "critical"
+  symptoms: string[]
+  causes: string[]
+  treatments: string[]
+  prevention: string[]
+  recommendations: string[]
+  urgency: "immediate" | "within_week" | "within_month" | "monitor"
+  estimatedYieldLoss: number
+  costOfTreatment: {
+    low: number
+    high: number
+    currency: string
+  }
+}
+
+export interface AnalysisReport {
+  id: string
+  timestamp: string
+  imageInfo: {
+    filename: string
+    size: number
+    dimensions: { width: number; height: number }
+    format: string
+  }
+  analysis: CropDiseaseAnalysis
+  environmentalFactors: {
+    temperature: string
+    humidity: string
+    soilCondition: string
+    season: string
+  }
+  reportGenerated: string
+  version: string
+}
 
 interface PlantIdConfig {
   apiKey: string

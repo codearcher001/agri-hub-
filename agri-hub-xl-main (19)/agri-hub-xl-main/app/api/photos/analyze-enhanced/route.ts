@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { generateAnalysisReport } from "@/lib/gemini-api"
 import { analyzeWithPlantId } from "@/lib/plant-id"
 import { LocalDatabaseService } from "@/lib/local-database"
 import FileStorage from "@/lib/file-storage"
@@ -8,16 +7,21 @@ import FileStorage from "@/lib/file-storage"
 export const maxDuration = 300 // 5 minutes
 export const dynamic = 'force-dynamic'
 
+function buildAnalysisText(a: any): string {
+  const parts: string[] = []
+  parts.push(`Crop: ${a.analysis?.cropName || a.cropName || "Unknown"}`)
+  parts.push(`Disease: ${a.analysis?.diseaseName || a.diseaseName || "Unknown"}`)
+  if (a.analysis?.confidence ?? a.confidence) parts.push(`Confidence: ${a.analysis?.confidence ?? a.confidence}%`)
+  if (a.analysis?.severity ?? a.severity) parts.push(`Severity: ${a.analysis?.severity ?? a.severity}`)
+  if (a.analysis?.urgency ?? a.urgency) parts.push(`Urgency: ${a.analysis?.urgency ?? a.urgency}`)
+  if ((a.analysis?.symptoms || a.symptoms)?.length) parts.push("\nSymptoms:\n- " + (a.analysis?.symptoms || a.symptoms).join("\n- "))
+  if ((a.analysis?.treatments || a.treatments)?.length) parts.push("\nTreatments:\n- " + (a.analysis?.treatments || a.treatments).join("\n- "))
+  if ((a.analysis?.recommendations || a.recommendations)?.length) parts.push("\nRecommendations:\n- " + (a.analysis?.recommendations || a.recommendations).join("\n- "))
+  return parts.join("\n")
+}
+
 export async function POST(request: NextRequest) {
   console.log("[v0] Enhanced crop analysis request received")
-
-  // Check Gemini API key - but don't fail, use fallback instead
-  const hasGeminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
-  if (!hasGeminiKey) {
-    console.log("[v0] Gemini API key not configured - will use demo mode")
-  } else {
-    console.log("[v0] Gemini API key found - will attempt real analysis")
-  }
 
   try {
     const formData = await request.formData()
@@ -57,7 +61,7 @@ export async function POST(request: NextRequest) {
     // Generate detailed report if requested
     let report = null
     if (includeReport) {
-      report = await generateAnalysisReport(analysis)
+      report = buildAnalysisText(analysis)
     }
 
     // Update database if photoId was provided
@@ -68,7 +72,7 @@ export async function POST(request: NextRequest) {
           ...analysis,
           report,
           lastAnalyzed: new Date().toISOString(),
-          analysisType: "enhanced_gemini_2_0_flash",
+          analysisType: "plant_id_v3",
         },
         "completed"
       )
@@ -147,7 +151,7 @@ export async function POST(request: NextRequest) {
     // Generate detailed report if requested
     let report = null
     if (includeReport) {
-      report = await generateAnalysisReport(fallbackAnalysis)
+      report = buildAnalysisText(fallbackAnalysis)
     }
 
     // Update database if photoId was provided
@@ -158,7 +162,7 @@ export async function POST(request: NextRequest) {
           ...fallbackAnalysis.analysis,
           report,
           lastAnalyzed: new Date().toISOString(),
-          analysisType: "enhanced_gemini_2_0_flash_fallback",
+          analysisType: "plant_id_fallback",
         },
         "completed"
       )
