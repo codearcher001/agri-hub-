@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { query } from "@/lib/database"
+import { LocalDatabaseService } from "@/lib/local-database"
 import FileStorage from "@/lib/file-storage"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
@@ -10,8 +10,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Invalid photo ID" }, { status: 400 })
     }
 
-    const { rows } = await query("SELECT * FROM photos WHERE id = $1", [photoId])
-    const photo = rows[0]
+    const photo = await LocalDatabaseService.getPhotoById(photoId)
 
     if (!photo) {
       return NextResponse.json({ error: "Photo not found" }, { status: 404 })
