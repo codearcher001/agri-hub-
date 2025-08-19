@@ -1,3 +1,13 @@
+// Gemini API removed from this project. This stub exists to satisfy any legacy imports.
+// Do not use. Migrate to Plant.id flows in `lib/plant-id.ts`.
+
+export type GeminiApiConfig = never
+export function getGeminiConfig(): never {
+  throw new Error("Gemini API removed")
+}
+
+const GeminiApi: any = {}
+export default GeminiApi
 // Deprecated: Gemini API removed. This file is intentionally left minimal to avoid imports.
 export type GeminiApiConfig = never
 export function getGeminiConfig(): never { throw new Error("Gemini API removed") }
