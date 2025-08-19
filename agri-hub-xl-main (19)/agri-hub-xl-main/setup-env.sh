@@ -16,8 +16,8 @@ fi
 
 echo ""
 echo "🔑 API Key Configuration:"
-echo "   NEXT_PUBLIC_PLANT_ID_API_KEY=your_plant_id_key_here"
-echo "   PLANT_ID_API_KEY=your_plant_id_key_here"
+echo "   NEXT_PUBLIC_PLANT_ID_API_KEY=6r17x2HcjRCx1EV7kQ5kyT6W1qAy2ZBo5Inf7dgbBD6dNvmXw7"
+echo "   PLANT_ID_API_KEY=6r17x2HcjRCx1EV7kQ5kyT6W1qAy2ZBo5Inf7dgbBD6dNvmXw7"
 echo ""
 echo "✅ Environment setup complete!"
 echo ""
