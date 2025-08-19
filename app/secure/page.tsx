@@ -160,7 +160,7 @@ export default function SecureDashboard() {
                         { name: "Garage", status: "Active", location: "Vehicle Access" },
                         { name: "Living Room", status: "Active", location: "Interior" },
                       ].map((camera, index) => (
-                        <div key={index} className="relative">
+                        <div key={camera.name} className="relative">
                           <div className="aspect-video bg-slate-900 dark:bg-slate-700 rounded-lg flex items-center justify-center">
                             <img
                               src={`/placeholder_image.png?height=200&width=300&text=${camera.name} Camera Feed`}
@@ -215,7 +215,7 @@ export default function SecureDashboard() {
                       { zone: "Side Gate", status: "Active", sensitivity: "High", lastTrigger: "3 hours ago" },
                     ].map((zone, index) => (
                       <div
-                        key={index}
+                        key={zone.zone}
                         className="flex items-center justify-between p-4 border rounded-lg dark:border-slate-600 dark:bg-slate-700"
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -258,7 +258,7 @@ export default function SecureDashboard() {
                         { id: "SEC-03", status: "Charging", battery: 100, zone: "Base Station", altitude: "0m" },
                       ].map((drone, index) => (
                         <div
-                          key={index}
+                          key={drone.id}
                           className="p-4 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600"
                         >
                           <div className="flex items-center justify-between mb-3">
@@ -375,7 +375,7 @@ export default function SecureDashboard() {
                       { name: "Bedroom Window", type: "Sensor", status: "Closed", battery: 88 },
                     ].map((access, index) => (
                       <div
-                        key={index}
+                        key={access.name}
                         className="flex items-center justify-between p-4 border rounded-lg dark:border-slate-600 dark:bg-slate-700 gap-3"
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -442,7 +442,7 @@ export default function SecureDashboard() {
                       { name: "Cleaning Service", role: "Service", lastAccess: "3 days ago", status: "Scheduled" },
                     ].map((user, index) => (
                       <div
-                        key={index}
+                        key={user.name}
                         className="flex items-center justify-between p-4 border rounded-lg dark:border-slate-600 dark:bg-slate-700"
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -522,7 +522,7 @@ export default function SecureDashboard() {
                         },
                       ].map((alert, index) => (
                         <div
-                          key={index}
+                          key={`${alert.type}-${alert.time}`}
                           className="flex items-center justify-between p-4 border rounded-lg dark:border-slate-600 dark:bg-slate-700 gap-3"
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
