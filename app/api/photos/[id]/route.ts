@@ -53,8 +53,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     // Get photo info first
-    const { rows } = await query("SELECT * FROM photos WHERE id = $1", [photoId])
-    const photo = rows[0]
+    const photo = await LocalDatabaseService.getPhotoById(photoId)
 
     if (!photo) {
       return NextResponse.json({ error: "Photo not found" }, { status: 404 })
@@ -63,8 +62,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Delete file from storage
     await FileStorage.deleteFile(photo.file_path)
 
-    // Delete photo record from database
-    await query("DELETE FROM photos WHERE id = $1", [photoId])
+    // Delete photo record from local database
+    await LocalDatabaseService.deletePhoto(photoId)
 
     return NextResponse.json({
       success: true,
@@ -85,45 +84,17 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: "Invalid photo ID" }, { status: 400 })
     }
 
-    const updateFields = []
-    const updateValues = []
-    let paramIndex = 1
+    const updates: any = {}
+    if (body.tags !== undefined) updates.tags = body.tags
+    if (body.analysisStatus !== undefined) updates.analysisStatus = body.analysisStatus
+    if (body.analysisResults !== undefined) updates.analysisResults = body.analysisResults
 
-    // Build dynamic update query
-    if (body.tags !== undefined) {
-      updateFields.push(`tags = $${paramIndex}`)
-      updateValues.push(body.tags)
-      paramIndex++
-    }
-
-    if (body.analysisStatus !== undefined) {
-      updateFields.push(`analysis_status = $${paramIndex}`)
-      updateValues.push(body.analysisStatus)
-      paramIndex++
-    }
-
-    if (body.analysisResults !== undefined) {
-      updateFields.push(`analysis_results = $${paramIndex}`)
-      updateValues.push(JSON.stringify(body.analysisResults))
-      paramIndex++
-    }
-
-    if (updateFields.length === 0) {
+    if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 })
     }
 
-    updateFields.push(`updated_at = CURRENT_TIMESTAMP`)
-    updateValues.push(photoId)
-
-    const updateQuery = `
-      UPDATE photos 
-      SET ${updateFields.join(", ")} 
-      WHERE id = $${paramIndex}
-      RETURNING *
-    `
-
-    const { rows } = await query(updateQuery, updateValues)
-    const updatedPhoto = rows[0]
+    const updatedPhoto = await LocalDatabaseService.updatePhoto(photoId, updates)
+    if (!updatedPhoto) return NextResponse.json({ error: "Photo not found" }, { status: 404 })
 
     return NextResponse.json({
       success: true,
