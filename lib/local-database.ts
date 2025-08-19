@@ -171,6 +171,32 @@ class LocalDatabase {
     return photo || null
   }
 
+  async updatePhoto(
+    photoId: number,
+    updates: Partial<Pick<LocalPhoto, "tags" | "analysis_status" | "analysis_results">>,
+  ): Promise<LocalPhoto | null> {
+    const photoIndex = this.photos.findIndex((p) => p.id === photoId)
+    if (photoIndex === -1) return null
+
+    this.photos[photoIndex] = {
+      ...this.photos[photoIndex],
+      ...(updates.tags !== undefined ? { tags: updates.tags } : {}),
+      ...(updates.analysis_status !== undefined ? { analysis_status: updates.analysis_status } : {}),
+      ...(updates.analysis_results !== undefined ? { analysis_results: updates.analysis_results } : {}),
+    }
+
+    this.saveToStorage()
+    return this.photos[photoIndex]
+  }
+
+  async deletePhoto(photoId: number): Promise<boolean> {
+    const before = this.photos.length
+    this.photos = this.photos.filter((p) => p.id !== photoId)
+    const after = this.photos.length
+    this.saveToStorage()
+    return after < before
+  }
+
   async updatePhotoAnalysis(
     photoId: number,
     analysisResults: any,
@@ -249,6 +275,22 @@ export class LocalDatabaseService {
     analysisStatus = "completed",
   ): Promise<LocalPhoto | null> {
     return localDB.updatePhotoAnalysis(photoId, analysisResults, analysisStatus)
+  }
+
+  static async updatePhoto(
+    photoId: number,
+    updates: Partial<{ tags: string[]; analysisStatus: string; analysisResults: any }>,
+  ): Promise<LocalPhoto | null> {
+    const mapped = {
+      ...(updates.tags !== undefined ? { tags: updates.tags } : {}),
+      ...(updates.analysisStatus !== undefined ? { analysis_status: updates.analysisStatus } : {}),
+      ...(updates.analysisResults !== undefined ? { analysis_results: updates.analysisResults } : {}),
+    }
+    return localDB.updatePhoto(photoId, mapped)
+  }
+
+  static async deletePhoto(photoId: number): Promise<boolean> {
+    return localDB.deletePhoto(photoId)
   }
 
   static async getUserById(id: number): Promise<LocalUser | null> {

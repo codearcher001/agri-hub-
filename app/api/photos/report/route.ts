@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { generateAnalysisReport } from "@/lib/gemini-api"
 import { LocalDatabaseService } from "@/lib/local-database"
 
 // Configure for dynamic responses
@@ -116,8 +115,30 @@ export async function POST(request: NextRequest) {
       contentType = "application/pdf"
       filename = `${photo.filename}_analysis.pdf`
     } else {
-      // Default to text format
-      reportContent = photo.analysis_results.report || "Report not available"
+      // Default to text format generated from stored fields
+      const ar = photo.analysis_results || {}
+      const lines: string[] = []
+      lines.push(`Crop: ${ar.cropName || "Unknown"}`)
+      lines.push(`Disease: ${ar.diseaseName || "Unknown"}`)
+      if (ar.confidence != null) lines.push(`Confidence: ${ar.confidence}%`)
+      if (ar.severity) lines.push(`Severity: ${ar.severity}`)
+      if (ar.urgency) lines.push(`Urgency: ${ar.urgency}`)
+      if (Array.isArray(ar.symptoms) && ar.symptoms.length) {
+        lines.push("")
+        lines.push("Symptoms:")
+        for (const s of ar.symptoms) lines.push(` - ${s}`)
+      }
+      if (Array.isArray(ar.treatments) && ar.treatments.length) {
+        lines.push("")
+        lines.push("Treatments:")
+        for (const t of ar.treatments) lines.push(` - ${t}`)
+      }
+      if (Array.isArray(ar.recommendations) && ar.recommendations.length) {
+        lines.push("")
+        lines.push("Recommendations:")
+        for (const r of ar.recommendations) lines.push(` - ${r}`)
+      }
+      reportContent = lines.join("\n")
       contentType = "text/plain"
       filename = `${photo.filename}_analysis.txt`
     }
