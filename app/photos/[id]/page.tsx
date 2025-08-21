@@ -107,14 +107,14 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
           className="inline-flex items-center justify-center rounded bg-green-600 px-3 py-1.5 text-white hover:bg-green-700 disabled:opacity-50"
           disabled={analyzing}
         >
-          {analyzing ? "Analyzing..." : "Analyze with Plant.id"}
+          {analyzing ? "Analyzing..." : "Analyze with Gemini"}
         </button>
       </div>
 
       <div className="rounded border p-4">
         <h2 className="font-medium mb-2">Analysis Results</h2>
         {!ar ? (
-          <div className="text-gray-600">No analysis yet. Click "Analyze with Plant.id" to start.</div>
+          <div className="text-gray-600">No analysis yet. Click "Analyze with Gemini" to start.</div>
         ) : (
           <div className="grid grid-cols-1 gap-2">
             {ar.cropName && <div><span className="font-medium">Crop:</span> {ar.cropName}</div>}

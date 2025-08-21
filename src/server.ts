@@ -8,7 +8,7 @@ dotenv.config();
 const app = express();
 app.use(cors());
 
-app.get("/", (_req, res) => res.send("AgriSecure analyzer up"));
+app.get("/", (_req, res) => res.send("AgriSecure analyzer with Gemini"));
 app.use("/api", analyzeRoute);
 
 const PORT = process.env.PORT || 3000;

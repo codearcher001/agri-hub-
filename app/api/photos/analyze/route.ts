@@ -1,87 +1,17 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { LocalDatabaseService } from "@/lib/local-database"
-import { analyzeWithPlantId } from "@/lib/plant-id"
-import FileStorage from "@/lib/file-storage"
 
 // Configure for large file uploads
-export const maxDuration = 300 // 5 minutes
+export const maxDuration = 60
 export const dynamic = 'force-dynamic'
 
-export async function POST(request: NextRequest) {
-  console.log("[v0] Plant.id crop analysis request received")
-
-  try {
-    const formData = await request.formData().catch(() => null)
-    const body = formData ? null : await request.json().catch(() => null)
-
-    const photoId = (formData?.get("photoId") as string) || (body?.photoId as string)
-    const userId = (formData?.get("userId") as string) || (body?.userId as string) || "1"
-    const base64 = (formData?.get("imageBase64") as string) || (body?.imageBase64 as string)
-    const file = formData?.get("file") as File | null
-
-    if (!photoId && !base64 && !file) {
-      return NextResponse.json({ error: "Provide one of: file, photoId, or imageBase64" }, { status: 400 })
-    }
-
-    let imagePath: string
-    let filename: string
-
-    if (file) {
-      const saved = await FileStorage.saveUploadedFile(file, "photos", Number.parseInt(userId))
-      imagePath = saved.filepath
-      filename = saved.filename
-    } else if (photoId) {
-      const photo = await LocalDatabaseService.getPhotoById(Number.parseInt(photoId))
-      if (!photo) return NextResponse.json({ error: "Photo not found" }, { status: 404 })
-      imagePath = photo.file_path
-      filename = photo.filename
-    } else {
-      // Write base64 to a temporary file for unified processing
-      const fs = await import("fs")
-      const path = await import("path")
-      const tmpPath = path.join("/tmp", `plantid_${Date.now()}.jpg`)
-      const raw = base64!.startsWith("data:") ? base64!.split(",")[1] : base64!
-      fs.writeFileSync(tmpPath, Buffer.from(raw, "base64"))
-      imagePath = tmpPath
-      filename = path.basename(tmpPath)
-    }
-
-    // Run Plant.id analysis
-    const analysisReport = await analyzeWithPlantId(imagePath)
-
-    // Flatten for storage and frontend
-    const flattened = {
-      cropName: analysisReport.analysis.cropName,
-      diseaseName: analysisReport.analysis.diseaseName,
-      confidence: analysisReport.analysis.confidence,
-      severity: analysisReport.analysis.severity,
-      symptoms: analysisReport.analysis.symptoms,
-      causes: analysisReport.analysis.causes,
-      treatments: analysisReport.analysis.treatments,
-      prevention: analysisReport.analysis.prevention,
-      recommendations: analysisReport.analysis.recommendations,
-      urgency: analysisReport.analysis.urgency,
-      estimatedYieldLoss: analysisReport.analysis.estimatedYieldLoss,
-      costOfTreatment: analysisReport.analysis.costOfTreatment,
-      lastAnalyzed: new Date().toISOString(),
-      analysisType: "plant_id_v3",
-    }
-
-    if (photoId) {
-      await LocalDatabaseService.updatePhotoAnalysis(Number.parseInt(photoId), flattened, "completed")
-    }
-
-    return NextResponse.json({
-      success: true,
-      analysis: flattened,
-      imageInfo: analysisReport.imageInfo,
-      filename,
-      message: "Crop disease analysis completed successfully via Plant.id",
-    })
-  } catch (error: any) {
-    console.error("[v0] Plant.id crop analysis error:", error)
-    return NextResponse.json({ error: "Analysis failed", details: error?.message || String(error) }, { status: 500 })
-  }
+export async function POST(_request: NextRequest) {
+  return NextResponse.json(
+    {
+      error: "Deprecated endpoint",
+      message: "Use POST /api/analyze on the Gemini server",
+    },
+    { status: 410 },
+  )
 }
 
 export async function GET(request: NextRequest) {
