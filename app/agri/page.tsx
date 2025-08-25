@@ -144,6 +144,11 @@ export default function AgriDashboard() {
 
   const [isLoadingRecentPhotos, setIsLoadingRecentPhotos] = useState(false)
   const [toastMessage, setToastMessage] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null)
+  
+  // Disease prediction state
+  const [diseasePrediction, setDiseasePrediction] = useState<any>(null)
+  const [isPredicting, setIsPredicting] = useState(false)
+  const [predictionImage, setPredictionImage] = useState<string | null>(null)
 
   const setToast = (newToast: { message: string; type: "success" | "error" | "info" }) => {
     setToastMessage(newToast)
@@ -830,7 +835,8 @@ export default function AgriDashboard() {
           (blob) => {
             if (blob) {
               const file = new File([blob], `captured-${Date.now()}.jpg`, { type: "image/jpeg" })
-              uploadFile(file)
+              // Use disease prediction for camera captures
+              handleDiseasePrediction(file)
             }
           },
           "image/jpeg",
@@ -854,6 +860,68 @@ export default function AgriDashboard() {
       // Upload all files
       files.forEach((file) => uploadFile(file))
     }
+  }
+
+  // Disease prediction functions
+  const handleDiseasePrediction = async (file: File) => {
+    try {
+      setIsPredicting(true)
+      setDiseasePrediction(null)
+      
+      // First upload the image
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload image')
+      }
+      
+      const uploadResult = await uploadResponse.json()
+      setPredictionImage(uploadResult.filePath)
+      
+      // Then run prediction
+      const predictionResponse = await fetch('/api/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          imagePath: uploadResult.filePath
+        })
+      })
+      
+      if (!predictionResponse.ok) {
+        throw new Error('Failed to predict disease')
+      }
+      
+      const predictionResult = await predictionResponse.json()
+      setDiseasePrediction(predictionResult.prediction)
+      
+      toast({
+        title: "Disease Prediction Complete",
+        description: `Detected: ${predictionResult.prediction.name} with ${Math.round(predictionResult.prediction.confidence * 100)}% confidence`,
+      })
+      
+    } catch (error) {
+      console.error('Disease prediction error:', error)
+      toast({
+        title: "Prediction Failed",
+        description: error instanceof Error ? error.message : "Failed to predict disease",
+        variant: "destructive",
+      })
+    } finally {
+      setIsPredicting(false)
+    }
+  }
+
+  const resetDiseasePrediction = () => {
+    setDiseasePrediction(null)
+    setPredictionImage(null)
   }
 
   const processBatchAnalysis = async () => {
@@ -1155,6 +1223,51 @@ export default function AgriDashboard() {
             <CardContent>
               <div className="text-2xl font-bold dark:text-slate-100">23</div>
               <p className="text-xs text-muted-foreground dark:text-slate-400">This week</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Disease Prediction Action */}
+        <div className="mb-6 sm:mb-8">
+          <Card className="dark:bg-slate-800 dark:border-slate-700 animate-scale-in card-hover">
+            <CardContent className="p-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-center w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-full">
+                    <Leaf className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                      Quick Disease Detection
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-300">
+                      Get instant disease diagnosis and treatment recommendations for your crops
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-transparent"
+                    disabled={isPredicting}
+                  >
+                    {isPredicting ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4 mr-2" />
+                    )}
+                    {isPredicting ? "Processing..." : "Upload Image"}
+                  </Button>
+                  <Button 
+                    onClick={startCamera}
+                    disabled={isCameraOpen || isPredicting}
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    Take Photo
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -1467,7 +1580,18 @@ export default function AgriDashboard() {
                     accept="image/*"
                     multiple
                     className="hidden"
-                    onChange={(e) => handleFileSelect(e.target.files)}
+                    onChange={(e) => {
+                      const files = e.target.files
+                      if (files && files.length > 0) {
+                        // For disease prediction, we'll use the first file
+                        if (files.length === 1) {
+                          handleDiseasePrediction(files[0])
+                        } else {
+                          // For multiple files, use the existing upload logic
+                          handleFileSelect(files)
+                        }
+                      }
+                    }}
                   />
                 </div>
 
@@ -1565,6 +1689,183 @@ export default function AgriDashboard() {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Disease Prediction Section */}
+                <Card className="dark:bg-slate-800 dark:border-slate-700 animate-scale-in card-hover">
+                  <CardHeader className="mobile-card">
+                    <CardTitle className="flex items-center gap-2 dark:text-slate-100">
+                      <Leaf className="w-5 h-5" />
+                      Plant Disease Prediction
+                    </CardTitle>
+                    <CardDescription className="dark:text-slate-300">
+                      Get instant disease diagnosis and treatment recommendations for your crops
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="mobile-card space-y-6">
+                    {!diseasePrediction ? (
+                      <div className="text-center space-y-4">
+                        <div className="flex items-center justify-center w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-full">
+                          <Leaf className="w-8 h-8 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                            Predict Crop Disease
+                          </h3>
+                          <p className="text-slate-600 dark:text-slate-300 mb-4">
+                            Upload a clear image of a crop leaf to get instant disease diagnosis and treatment recommendations
+                          </p>
+                          <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
+                            <Button 
+                              className="mobile-button" 
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={isPredicting}
+                            >
+                              {isPredicting ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              ) : (
+                                <Upload className="w-4 h-4 mr-2" />
+                              )}
+                              {isPredicting ? "Processing..." : "Upload & Predict"}
+                            </Button>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                              Max 10MB • JPG, PNG, WEBP
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* Prediction Results */}
+                        <div className="grid sm:grid-cols-2 gap-6">
+                          {/* Image Display */}
+                          <div className="space-y-3">
+                            <h4 className="font-medium dark:text-slate-100">Uploaded Image</h4>
+                            <div className="aspect-square bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden">
+                              {predictionImage && (
+                                <img 
+                                  src={predictionImage} 
+                                  alt="Crop for disease prediction"
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Disease Information */}
+                          <div className="space-y-4">
+                            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                              <div className="flex items-center gap-2 mb-2">
+                                <AlertTriangle className="w-5 h-5 text-red-600" />
+                                <h4 className="font-semibold text-red-800 dark:text-red-200">
+                                  {diseasePrediction.name}
+                                </h4>
+                              </div>
+                              <p className="text-sm text-red-700 dark:text-red-300 mb-2">
+                                {diseasePrediction.description}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-red-600 dark:text-red-400">Confidence:</span>
+                                <Badge variant="destructive" className="text-xs">
+                                  {Math.round(diseasePrediction.confidence * 100)}%
+                                </Badge>
+                                <span className="text-xs text-red-600 dark:text-red-400">
+                                  Severity: {diseasePrediction.severity}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="space-y-3">
+                              <div>
+                                <h5 className="font-medium dark:text-slate-100 text-sm mb-1">Symptoms</h5>
+                                <p className="text-sm text-slate-600 dark:text-slate-300">
+                                  {diseasePrediction.symptoms}
+                                </p>
+                              </div>
+                              <div>
+                                <h5 className="font-medium dark:text-slate-100 text-sm mb-1">Treatment</h5>
+                                <p className="text-sm text-slate-600 dark:text-slate-300">
+                                  {diseasePrediction.treatment}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Treatment Recommendations */}
+                        <div className="space-y-4">
+                          <h4 className="font-medium dark:text-slate-100">Treatment Recommendations</h4>
+                          
+                          <div className="grid sm:grid-cols-2 gap-4">
+                            <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                              <div className="flex items-center gap-2 mb-2">
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                <h5 className="font-medium text-green-800 dark:text-green-200">Recommended Fertilizer</h5>
+                              </div>
+                              <p className="text-sm text-green-700 dark:text-green-300">
+                                {diseasePrediction.fertilizer}
+                              </p>
+                            </div>
+
+                            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                              <div className="flex items-center gap-2 mb-2">
+                                <TrendingUp className="w-5 h-5 text-blue-600" />
+                                <h5 className="font-medium text-blue-800 dark:text-blue-200">Prevention Tips</h5>
+                              </div>
+                              <p className="text-sm text-blue-700 dark:text-blue-300">
+                                {diseasePrediction.prevention}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                          <Button 
+                            variant="outline" 
+                            onClick={resetDiseasePrediction}
+                            className="bg-transparent"
+                          >
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            New Prediction
+                          </Button>
+                          <Button 
+                                                         onClick={() => {
+                               // Add to recent photos for tracking
+                               const newPhoto = {
+                                 id: Date.now(),
+                                 filename: `disease-prediction-${Date.now()}.jpg`,
+                                 originalName: `Disease Prediction - ${diseasePrediction.name}`,
+                                 filePath: predictionImage || '',
+                                 fileSize: 0,
+                                 mimeType: 'image/jpeg',
+                                 source: 'disease-prediction',
+                                 analysisStatus: 'completed',
+                                 analysisResults: {
+                                   diseaseName: diseasePrediction.name,
+                                   confidence: diseasePrediction.confidence,
+                                   severity: diseasePrediction.severity,
+                                   treatment: diseasePrediction.treatment,
+                                   fertilizer: diseasePrediction.fertilizer
+                                 },
+                                 createdAt: new Date().toISOString()
+                               }
+                               setRecentPhotos(prev => [newPhoto, ...prev.slice(0, 4)])
+                               resetDiseasePrediction()
+                               
+                               toast({
+                                 title: "Prediction Saved",
+                                 description: "Disease prediction has been saved to your analysis history",
+                               })
+                             }}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Save to History
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
 
